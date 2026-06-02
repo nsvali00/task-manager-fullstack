@@ -6,10 +6,13 @@ public class TaskUpdateRequest {
     private String description;
     private Boolean completed;
 
-    public TaskUpdateRequest(String name, String description, Boolean completed) {
+    public TaskUpdateRequest(String name, String description, boolean completed) {
         this.name = name;
         this.description = description;
         this.completed = completed;
+    }
+
+    public TaskUpdateRequest() {
     }
 
     public String getName() {
@@ -32,7 +35,7 @@ public class TaskUpdateRequest {
         return completed;
     }
 
-    public void setCompleted(Boolean completed) {
+    public void setCompleted(boolean completed) {
         this.completed = completed;
     }
 }
