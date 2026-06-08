@@ -1,144 +1,138 @@
-# 🧩 Task Management API (Spring Boot + JWT + Docker)
+# 🧩 Task Management API
 
-A production-style backend REST API for task management built with Spring Boot.  
-The project demonstrates secure authentication (JWT access + refresh tokens), pagination, and fully containerized deployment using Docker and PostgreSQL.
-
----
-
-## 🚀 Features
-
-- User registration and login system
-- JWT authentication (Access + Refresh tokens)
-- Secure endpoints using Spring Security
-- Task CRUD operations (Create, Read, Update, Delete)
-- Pagination and scalable data fetching
-- Global exception handling
-- Dockerized backend + PostgreSQL database
-- Stateless authentication design
-- Clean layered architecture (Controller → Service → Repository)
+![Banner](https://via.placeholder.com/1200x300.png?text=Task+Management+API+Spring+Boot+JWT+Docker)
 
 ---
 
-## 🏗️ Tech Stack
+## 🏷️ Tech Stack
 
-- Java 21+
-- Spring Boot
-- Spring Security
-- JWT (JSON Web Tokens)
-- Spring Data JPA (Hibernate)
-- PostgreSQL
-- Docker & Docker Compose
-- Maven
+![Java](https://img.shields.io/badge/Java-17-blue?logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green?logo=springboot)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue?logo=postgresql)
+![JWT](https://img.shields.io/badge/Auth-JWT-orange)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker)
+![Build](https://img.shields.io/badge/Build-Maven-red)
+![Status](https://img.shields.io/badge/Status-Production--Ready-success)
 
 ---
 
-## 📦 Architecture Overview
+## 📌 Overview
+
+A production-style backend system for task management built using **Spring Boot**.  
+It demonstrates modern backend engineering practices including **JWT authentication, refresh token handling, pagination, and full Dockerization**.
+
+Designed as a **portfolio-ready backend project** that mimics real-world API architecture.
+
+---
+
+## 🎯 Key Features
+
+- 🔐 Secure authentication (JWT Access + Refresh Tokens)
+- 👤 User registration & login system
+- 📋 Task CRUD operations
+- 📊 Pagination support for scalable data access
+- 🛡️ Spring Security integration
+- ⚙️ Global exception handling
+- 🐳 Dockerized application (App + PostgreSQL)
+- 🧱 Clean layered architecture
+
+---
+
+## 🧠 Architecture
+
+
 Client (Postman / Frontend)
 ↓
-REST API (Spring Boot Controllers)
+REST Controllers
 ↓
 Service Layer (Business Logic)
 ↓
 Repository Layer (JPA / Hibernate)
 ↓
-PostgreSQL Database (Docker Container)
+PostgreSQL (Docker Container)
 
-JWT Filter secures all protected endpoints
+JWT Filter secures protected endpoints
 
 
 ---
 
 ## 🔐 Authentication Flow
 
-1. User registers an account
-2. User logs in with credentials
-3. Server returns:
-    - Access Token (short-lived)
-    - Refresh Token (long-lived)
-4. Access token is used for protected endpoints
-5. When access token expires, refresh token is used to generate a new one
-6. No session storage (fully stateless authentication)
+1. User registers
+2. User logs in
+3. System returns:
+   - Access Token (short-lived)
+   - Refresh Token (long-lived)
+4. Access token used for API requests
+5. Refresh token used to generate new access tokens
+6. Fully stateless authentication (no sessions)
 
 ---
 
-## 🐳 Running the Project (Docker)
+## 🐳 Running the Project
 
-### 1. Clone repository
+### 📦 Clone Repository
 
 git clone https://github.com/your-username/task-api.git
 cd task-api
-
-### 2. Start application
+🚀 Start with Docker
 docker compose up --build
-### 3. Access application
+🌐 Access Application
 http://localhost:8080
-⚙️ Environment Configuration
-
-These values are configured in docker-compose.yml or .env:
-
+⚙️ Environment Variables
 SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/taskdb
 SPRING_DATASOURCE_USERNAME=postgres
 SPRING_DATASOURCE_PASSWORD=postgres
 
 JWT_SECRET=your_secret_key
 JWT_EXPIRATION=3600000
-📌 API Endpoints
-🔐 Authentication
-POST /auth/register   → Register new user
-POST /auth/login      → Login and receive tokens
-POST /auth/refresh    → Refresh access token
-📝 Tasks (Protected)
-GET    /tasks         → Get all tasks (paginated)
-POST   /tasks         → Create task
-PUT    /tasks/{id}    → Update task
-DELETE /tasks/{id}    → Delete task
-
-All /tasks endpoints require a valid JWT access token.
-
+📡 API Endpoints
+🔐 Auth
+POST /auth/register
+POST /auth/login
+POST /auth/refresh
+📋 Tasks (Protected)
+GET    /tasks
+POST   /tasks
+PUT    /tasks/{id}
+DELETE /tasks/{id}
 📄 Pagination Example
 GET /tasks?page=0&size=10
+📸 Screenshots
 
-Response:
+Add real screenshots from Postman or Swagger here
 
-paginated task list
-total pages
-total elements
-🧪 Testing the API
+🔑 Login Request
 
-You can test the system using:
+📋 Tasks Response
 
-Postman (recommended)
-curl commands
-Swagger UI (if added later)
-🐳 Docker Services
+🔐 JWT Flow
 
-The application runs with two containers:
-
+🐳 Docker Architecture
 app → Spring Boot backend
 db → PostgreSQL database
-🔥 What This Project Demonstrates
+🔥 Engineering Highlights
 
-This project shows practical backend engineering skills:
+This project demonstrates:
 
-REST API design principles
-Authentication & authorization (JWT)
-Token refresh strategy (production-style security)
-Pagination for scalable APIs
-Dockerized microservice-like setup
-Clean layered architecture
-Real-world backend workflow
+Real-world backend API design
+Secure authentication flow (JWT + refresh tokens)
+Stateless architecture design
+Scalable pagination system
+Containerized deployment (Docker)
+Clean separation of concerns
+Production-style configuration management
 📈 Future Improvements
 Role-based access control (USER / ADMIN)
-Swagger / OpenAPI documentation
-Unit and integration tests (JUnit, Testcontainers)
+Swagger / OpenAPI integration
+Unit & integration testing (JUnit + Testcontainers)
 CI/CD pipeline (GitHub Actions)
-Cloud deployment (Render / AWS / Fly.io)
-Audit logging and monitoring
-
-Author
+Cloud deployment (AWS / Render / Fly.io)
+Observability (logging + metrics)
+👨‍💻 Author
 
 Nikola Svalina
 
 ⭐ If you like this project
 
-Feel free to star the repository and explore improvements!
+Give it a ⭐ and explore improvements!

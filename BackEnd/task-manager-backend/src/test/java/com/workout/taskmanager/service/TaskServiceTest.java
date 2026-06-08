@@ -1,12 +1,13 @@
 package com.workout.taskmanager.service;
 
-import com.workout.taskmanager.dto.request.TaskCreateRequest;
-import com.workout.taskmanager.dto.request.TaskUpdateRequest;
-import com.workout.taskmanager.dto.response.TaskResponseDTO;
-import com.workout.taskmanager.entity.Task;
-import com.workout.taskmanager.exceptions.TaskNotFoundException;
-import com.workout.taskmanager.mapper.TaskMapper;
-import com.workout.taskmanager.repository.TaskRepository;
+import com.workout.taskmanager.task.dto.TaskCreateRequest;
+import com.workout.taskmanager.task.dto.TaskUpdateRequest;
+import com.workout.taskmanager.task.dto.TaskResponse;
+import com.workout.taskmanager.task.entity.Task;
+import com.workout.taskmanager.task.exceptions.TaskNotFoundException;
+import com.workout.taskmanager.task.mapper.TaskMapper;
+import com.workout.taskmanager.task.repository.TaskRepository;
+import com.workout.taskmanager.task.service.TaskService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,8 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
@@ -53,7 +52,7 @@ class TaskServiceTest {
         Task task = new Task();
         Task savedTask = new Task();
 
-        TaskResponseDTO responseDto = new TaskResponseDTO();
+        TaskResponse responseDto = new TaskResponse();
         responseDto.setName("Gym");
         responseDto.setDescription("Push day");
         responseDto.setCompleted(false);
@@ -63,7 +62,7 @@ class TaskServiceTest {
         when(taskMapper.toDto(savedTask)).thenReturn(responseDto);
 
         log.info("Creating task with name {}", request.getName());
-        TaskResponseDTO result = taskService.createTask(request);
+        TaskResponse result = taskService.createTask(request);
 
         assertEquals("Gym", result.getName());
         assertEquals("Push day", result.getDescription());
@@ -86,12 +85,12 @@ class TaskServiceTest {
         Long id = 1L;
 
         Task task = new Task();
-        TaskResponseDTO responseDto = new TaskResponseDTO();
+        TaskResponse responseDto = new TaskResponse();
 
         when(taskRepository.findById(id)).thenReturn(Optional.of(task));
         when(taskMapper.toDto(task)).thenReturn(responseDto);
 
-        TaskResponseDTO result = taskService.getTaskById(id);
+        TaskResponse result = taskService.getTaskById(id);
 
         assertNotNull(result);
         verify(taskRepository).findById(id);
@@ -121,13 +120,13 @@ class TaskServiceTest {
         TaskUpdateRequest request = new TaskUpdateRequest();
 
         Task task = new Task();
-        TaskResponseDTO responseDto = new TaskResponseDTO();
+        TaskResponse responseDto = new TaskResponse();
 
         when(taskRepository.findById(id)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
         when(taskMapper.toDto(task)).thenReturn(responseDto);
 
-        TaskResponseDTO result = taskService.patchTask(id, request);
+        TaskResponse result = taskService.patchTask(id, request);
 
         assertNotNull(result);
 

@@ -1,7 +1,7 @@
 package com.workout.taskmanager;
 
-import com.workout.taskmanager.entity.Task;
-import com.workout.taskmanager.repository.TaskRepository;
+import com.workout.taskmanager.task.entity.Task;
+import com.workout.taskmanager.task.repository.TaskRepository;
 import org.springframework.stereotype.Component;
 
 @Component
