@@ -1,166 +1,260 @@
-# Full-Stack Application – Spring Boot & React (TypeScript)
+# 🚀 Task Manager Fullstack
 
-## 🎯 Project Goal
-Build a modern full-stack web application using:
-- **Spring Boot** as backend REST API
-- **React (TypeScript)** as frontend client
-- **Docker** and **Kubernetes** for containerization and deployment
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB)
+![JWT](https://img.shields.io/badge/JWT-Authentication-yellow)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-The project demonstrates real-world full-stack concepts such as REST APIs, authentication, routing, containerization, and scalable deployment.
+## 📖 Overview
+
+Task Manager Fullstack is a production-style full-stack application built to demonstrate modern backend and frontend development practices.
+
+The project features secure JWT authentication, refresh token rotation, role-based security, Dockerized deployment, PostgreSQL persistence, and a modern React frontend.
+
+The goal of this project is to showcase real-world software engineering concepts rather than simple CRUD functionality.
 
 ---
 
-## 🧩 Tech Stack
+## ✨ Features
+
+### 🔐 Authentication & Security
+
+* JWT Access Tokens
+* Refresh Tokens
+* Refresh Token Rotation
+* Refresh Token Reuse Prevention
+* Secure Logout
+* Password Encryption with BCrypt
+* Spring Security Integration
+* Protected API Endpoints
+
+### 📋 Task Management
+
+* Create Tasks
+* View Tasks
+* Update Tasks
+* Delete Tasks
+* Pagination Support
+* Input Validation
+* Global Exception Handling
+
+### 🐳 DevOps
+
+* Dockerized Backend
+* Dockerized Database
+* Docker Compose Setup
+* Environment Configuration
+* Easy Local Deployment
+
+### 🎨 Frontend
+
+* React + Vite
+* Axios API Integration
+* Authentication Flow
+* Protected Routes
+* Responsive UI
+
+---
+
+## 🏗️ Architecture
+
+```text
+Frontend (React)
+       │
+       ▼
+Spring Boot REST API
+       │
+       ▼
+Spring Security + JWT
+       │
+       ▼
+PostgreSQL Database
+```
+
+---
+
+## 📂 Project Structure
+
+```text
+task-manager-fullstack/
+│
+├── backend/
+│   ├── src/
+│   ├── Dockerfile
+│   ├── pom.xml
+│   └── ...
+│
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.js
+│   └── ...
+│
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## 🛠️ Tech Stack
 
 ### Backend
-- Java 21+
-- Spring Boot (Web, Data JPA, Security)
-- JWT Authentication
-- H2 / MySQL
-- Maven
+
+* Java 21
+* Spring Boot
+* Spring Security
+* Spring Data JPA
+* PostgreSQL
+* JWT
+* Maven
 
 ### Frontend
-- React 18
-- TypeScript
-- Vite
-- React Router
-- Axios
 
-### DevOps / Deployment
-- Docker (frontend and backend containers)
-- Docker Compose (local orchestration)
-- Kubernetes (deployments and services)
-- Optional: Minikube or cloud cluster
+* React
+* Vite
+* Axios
+* React Router
+
+### DevOps
+
+* Docker
+* Docker Compose
 
 ---
 
-## 📁 Project Structure
+## 🔄 Authentication Flow
 
-root/\
-├── backend/\
-│ ├── src/main/java/...\
-│ ├── src/main/resources/\
-│ ├── pom.xml\
-│ └── Dockerfile\
-│\
-├── frontend/   
-│ ├── src/  
-│ │ ├── pages/\
-│ │ ├── components/\
-│ │ ├── services/   
-│ │ └── App.tsx \
-│ ├── package.json\
-│ └── Dockerfile \
-│\
-├── docker-compose.yml\
-├── k8s/\
-│ ├── backend-deployment.yaml\
-│ └── frontend-deployment.yaml\
-└── README.md\
+```text
+User Login
+    │
+    ▼
+Access Token + Refresh Token Issued
+    │
+    ▼
+Access Token Used For API Requests
+    │
+    ▼
+Access Token Expires
+    │
+    ▼
+Refresh Token Endpoint
+    │
+    ▼
+New Access Token + New Refresh Token
+```
 
+Refresh tokens are stored and managed securely to support token rotation and reuse prevention.
 
+---
 
-<b>Daily Full-Stack Plan (2–3 weeks)</b>\
-Week 1: Core Full-Stack Foundation
+## 📡 API Endpoints
 
-Day 1	Project setup & environment
-- Install Java, Node.js, npm, Maven, Docker, kubectl
-- Create Git repo
-- Initialize Spring Boot backend project
-- Initialize React + TypeScript frontend (Vite)\
+### Authentication
 
-Day 2	Backend basics
-- Create Task entity
-- Setup Spring Data JPA & repository
-- Implement REST controller with GET endpoint
-- Test with Postman or curl\
--
-Day 3	Frontend basics
-- Create React pages/components
-- Setup React Router (/tasks page)
-- Display dummy tasks list
-- Ensure frontend runs via npm run dev\
+| Method | Endpoint       |
+| ------ | -------------- |
+| POST   | /auth/register |
+| POST   | /auth/login    |
+| POST   | /auth/refresh  |
+| POST   | /auth/logout   |
 
-Day 4	Backend CRUD
-- Add POST, PUT, DELETE endpoints in Spring Boot
-- Test all CRUD endpoints via Postman\
+### Tasks
 
-Day 5	Frontend CRUD integration
-- Create Axios service for API calls
-- Fetch tasks from backend
-- Implement Add/Edit/Delete UI functionality\
+| Method | Endpoint    |
+| ------ | ----------- |
+| GET    | /tasks      |
+| GET    | /tasks/{id} |
+| POST   | /tasks      |
+| PUT    | /tasks/{id} |
+| DELETE | /tasks/{id} |
 
-Day 6	State management & props
-- Learn React state & props
-- Implement task completion toggle
-- Handle dynamic updates in UI\
+---
 
-Day 7	Error handling & validation
-- Backend: validate input and return proper HTTP errors
-- Frontend: handle API errors and show notifications/snackbar
+## ⚡ Quick Start
 
-Week 2: Authentication + UI Improvements\
-Day 8	JWT Authentication (Backend)
-- Implement login endpoint
-- Return JWT token
-- Store password securely (BCrypt)
+### Clone Repository
 
-Day 9	JWT Authentication (Frontend)
-- Create login form
-- Store JWT in localStorage
-- Axios interceptor to attach token to requests
+```bash
+git clone https://github.com/your-username/task-manager-fullstack.git
+cd task-manager-fullstack
+```
 
-Day 10	Protected routes & AuthGuard
-- Implement PrivateRoute component
-- Protect /tasks route
+### Start Entire Application
 
-Day 11	UI improvements
-- Add React modal for editing tasks
-- Add loading states
-- Style components with Tailwind or CSS
+```bash
+docker compose up --build
+```
 
-Day 12	Frontend + Backend integration testing
-- Test CRUD with JWT authentication
-- Test edge cases (invalid tokens, errors)
+### Backend
 
-Day 13	Project cleanup
-- Remove unused files
-- Add README, comments, and documentation
-- Commit & push to GitHub
+Available at:
 
-Day 14	Buffer / catch-up	- Fix bugs, unanswered issues
-- Review code, prepare for Docker
+```text
+http://localhost:8080
+```
 
-Week 3: Containerization & Deployment
+### Frontend
 
-Day 15	Docker: Backend	- Create backend Dockerfile
-- Build & run backend container locally
-- Test API via container
+Available at:
 
-Day 16	Docker: Frontend
-- Create frontend Dockerfile
-- Build & run frontend container locally
-- Test React app via container
+```text
+http://localhost:5173
+```
 
-Day 17	Docker Compose
-- Write docker-compose.yml to run both containers together
-- Verify full-stack works together
+---
 
-Day 18	Kubernetes: Backend
-- Write deployment & service YAML for backend
-- Deploy to Minikube or cluster
-- Test pod and service
+## 🧪 Manual Testing Flow
 
-Day 19	Kubernetes: Frontend
-- Write deployment & service YAML for frontend
-- Deploy & verify frontend pod
-- Test service connectivity
+1. Register a new user
+2. Login
+3. Receive access and refresh tokens
+4. Create tasks
+5. Update tasks
+6. Refresh expired access token
+7. Logout
+8. Verify protected endpoints reject invalid tokens
 
-Day 20	Cluster integration
-- Ensure frontend talks to backend using service name
-- Test CRUD operations via Kubernetes cluster
+---
 
-Day 21	Final review & deployment
-- Document steps in README
-- Push images to Docker Hub
-- Optionally deploy cluster
+## 📈 Future Improvements
+
+* Automated Integration Tests
+* GitHub Actions CI/CD
+* Swagger/OpenAPI Documentation
+* Role-Based Authorization Expansion
+* Monitoring & Metrics
+* Cloud Deployment
+
+---
+
+## 🎯 Key Learning Outcomes
+
+This project demonstrates:
+
+* Secure Authentication Design
+* REST API Development
+* Spring Security
+* JWT Lifecycle Management
+* Docker Containerization
+* PostgreSQL Integration
+* Frontend/Backend Integration
+* Production-Oriented Architecture
+
+---
+
+## 👨‍💻 Author
+
+Nikola Svalina
+
+Backend Developer focused on Java, Spring Boot, Security, and DevOps.
+
+GitHub: https://github.com/nsvali00
+
+---
+
+## ⭐ Support
+
+If you found this project useful, consider giving it a star.
