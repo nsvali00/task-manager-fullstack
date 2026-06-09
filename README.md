@@ -245,6 +245,11 @@ This project demonstrates:
 
 ---
 
+## Documentation
+
+- [Backend Documentation](./backend/README.md)
+- [Frontend Documentation](./frontend/README.md)
+
 ## 👨‍💻 Author
 
 Nikola Svalina

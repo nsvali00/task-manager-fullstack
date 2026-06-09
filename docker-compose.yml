@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   db:
@@ -16,7 +14,7 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   app:
-    build: ..
+    build: backend
     container_name: task-api
     restart: always
     depends_on:

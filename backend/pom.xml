@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.workout</groupId>
-	<artifactId>task-manager-backend</artifactId>
+	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>task-manager-backend</name>
+	<name>backend</name>
 	<description>Task manager project in Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>

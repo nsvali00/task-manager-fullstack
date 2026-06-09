@@ -1,16 +1,133 @@
-# React + Vite
+# 🎨 Task Manager Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React frontend for the Task Manager Fullstack application.
 
-Currently, two official plugins are available:
+The frontend communicates with the Spring Boot backend through a REST API and provides a modern user experience for task management.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Authentication
 
-## Expanding the ESLint configuration
+* Login
+* Registration
+* Logout
+* Protected Routes
+* JWT Authentication
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Task Management
+
+* View Tasks
+* Create Tasks
+* Edit Tasks
+* Delete Tasks
+* Pagination Support
+
+### User Experience
+
+* Responsive Design
+* Form Validation
+* Error Handling
+* Loading States
+
+---
+
+## 🏗️ Architecture
+
+```text
+Pages
+  │
+  ▼
+Components
+  │
+  ▼
+Services
+  │
+  ▼
+Axios API Layer
+  │
+  ▼
+Spring Boot Backend
+```
+
+---
+
+## 📂 Project Structure
+
+```text
+src/
+
+├── api/
+├── components/
+├── pages/
+├── routes/
+├── services/
+├── App.jsx
+└── main.jsx
+```
+
+---
+
+## 🛠️ Technology Stack
+
+* React
+* Vite
+* Axios
+* React Router
+
+---
+
+## 🔌 Backend Connection
+
+The frontend communicates with the backend REST API.
+
+Default backend URL:
+
+```text
+http://localhost:8080
+```
+
+Configure API endpoints in:
+
+```text
+src/api/axios.js
+```
+
+---
+
+## ▶️ Running Locally
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start development server:
+
+```bash
+npm run dev
+```
+
+Frontend available at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+## 📱 Planned Improvements
+
+* Dark Mode
+* Advanced Filtering
+* Sorting
+* User Profile Management
+* Dashboard Statistics
+
+---
+
+## 🎯 Purpose
+
+This frontend demonstrates modern React development practices, API integration, routing, authentication handling, and responsive UI design while working together with a secure Spring Boot backend.

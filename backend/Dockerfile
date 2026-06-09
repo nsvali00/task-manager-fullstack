@@ -2,7 +2,7 @@ FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
-COPY ../target/task-manager-backend-0.0.1-SNAPSHOT.jar app.jar
+COPY target/backend-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
