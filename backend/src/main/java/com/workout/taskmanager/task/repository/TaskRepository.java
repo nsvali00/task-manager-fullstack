@@ -11,4 +11,5 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task,Long> {
 
     List<Task> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    List<Task> findByProjectId(Long projectId);
 }

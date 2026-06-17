@@ -1,21 +1,18 @@
 package com.workout.taskmanager.task.dto;
 
-public class TaskCreateRequest {
+import com.workout.taskmanager.project.entity.Project;
+import com.workout.taskmanager.task.enums.TaskPriority;
+import com.workout.taskmanager.user.entity.User;
 
-    private String name;
-    private String description;
-    private boolean completed;
+import java.time.LocalDateTime;
 
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
+public record TaskCreateRequest(
+
+        String title,
+        String description,
+        TaskPriority priority,
+        LocalDateTime dueDate,
+        Long projectId,
+        Long assigneeId
+        ) {
 }

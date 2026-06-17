@@ -5,6 +5,7 @@ import com.workout.taskmanager.task.dto.TaskCreateRequest;
 import com.workout.taskmanager.task.dto.TaskUpdateRequest;
 import com.workout.taskmanager.task.dto.TaskResponse;
 import com.workout.taskmanager.task.service.TaskService;
+import com.workout.taskmanager.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,8 +55,8 @@ public class TaskController {
 
     @Operation(summary = "Create new task")
     @PostMapping
-    public ResponseEntity<ApiResponse<TaskResponse>> createTask(@RequestBody TaskCreateRequest newTask){
-        TaskResponse createdTaskDTO = taskService.createTask(newTask);
+    public ResponseEntity<ApiResponse<TaskResponse>> createTask(@RequestBody TaskCreateRequest newTask, @AuthenticationPrincipal User user){
+        TaskResponse createdTaskDTO = taskService.createTask(newTask, user);
         ApiResponse<TaskResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(createdTaskDTO);
         apiResponse.setStatus(HttpStatus.CREATED);
