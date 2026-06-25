@@ -11,12 +11,14 @@ import com.workout.taskmanager.task.exceptions.TaskNotFoundException;
 import com.workout.taskmanager.task.mapper.TaskMapper;
 import com.workout.taskmanager.task.entity.Task;
 import com.workout.taskmanager.task.repository.TaskRepository;
+import com.workout.taskmanager.user.entity.CustomUserDetails;
 import com.workout.taskmanager.user.entity.User;
 import com.workout.taskmanager.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,24 +42,25 @@ public class TaskService {
         this.memberRepository = memberRepository;
     }
 
-    public Page<TaskResponse> getAllTasks(Pageable pageable) {
-        Page<Task> allTasks = taskRepository.findAll(pageable);
+    public Page<TaskResponse> getAllTasks(Pageable pageable, User user) {
+        Page<Task> allTasks = taskRepository.findByUser(user,pageable);
         return allTasks.map(taskMapper::toDto);
     }
 
-    public TaskResponse getTaskById(Long id) {
+    public TaskResponse getTaskById(Long id, User user) {
         log.info("Fetching task with id: {}", id);
         Task task = taskRepository.findById(id).orElseThrow(() -> {
             log.warn("Task not found with id {}", id);
             return new TaskNotFoundException(id);
         });
+        checkOwnership(user, task);
         return taskMapper.toDto(task);
     }
 
     public TaskResponse createTask(TaskCreateRequest newTaskDto, User currentUser) {
         log.info("Creating task with title: {}", newTaskDto.title());
         Project project = projectRepository.findById(newTaskDto.projectId()).orElseThrow(()->new RuntimeException("Failed to find project with id " + newTaskDto.projectId()));
-        if (memberRepository.existsByProjectAndUser(project, currentUser)) {
+        if (!memberRepository.existsByProjectAndUser(project, currentUser)) {
             throw new RuntimeException("Not a project member");
         }
         User assignee = null;
@@ -65,7 +68,7 @@ public class TaskService {
             assignee = userRepository.findById(newTaskDto.assigneeId()).orElseThrow(()-> new RuntimeException("Failed to find assignee by id " + newTaskDto.assigneeId()));
         }
         if (assignee != null &&
-                memberRepository.existsByProjectAndUser(project, assignee)) {
+                !memberRepository.existsByProjectAndUser(project, assignee)) {
             throw new RuntimeException("Assignee must be project member");
         }
 
@@ -79,32 +82,40 @@ public class TaskService {
         return taskMapper.toDto(task);
     }
 
-    public TaskResponse patchTask(Long id, TaskUpdateRequest request) {
+    public TaskResponse patchTask(Long id, TaskUpdateRequest request, User user) {
         log.info("Updating task with id: {}", id);
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Cannot update, task not found with id: {}", id);
                     return new TaskNotFoundException(id);
                 });
+        checkOwnership(user, task);
         taskMapper.updateTaskFromDto(request, task);
         task = taskRepository.save(task);
         log.info("Task updated successfully with id: {}", id);
         return taskMapper.toDto(task);
     }
 
-    public void deleteTask(Long id) {
+    public void deleteTask(Long id, User user) {
         log.info("Deleting task with id: {}", id);
         Task task = taskRepository.findById(id).orElseThrow(() -> {
             log.warn("Cannot delete, task not found with id: {}", id);
             return new TaskNotFoundException(id);
         });
+        checkOwnership(user, task);
         taskRepository.delete(task);
     }
 
-    public List<TaskResponse> searchTasks(String name, Pageable pageable){
-        List<Task> tasks = taskRepository.findByNameContainingIgnoreCase(name, pageable);
+    public List<TaskResponse> searchTasks(String title, Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails){
+        Page<Task> tasks = taskRepository.findByUserAndTitleContainingIgnoreCase(userDetails.getUser(), title, pageable);
 
         return tasks.stream().map(taskMapper::toDto).toList();
+    }
+
+    private static void checkOwnership(User user, Task task) {
+        if(!task.getCreatedBy().getId().equals(user.getId()) && !task.getAssignee().getId().equals(user.getId())){
+            throw new RuntimeException("Access denied");
+        }
     }
 
 

@@ -1,5 +1,6 @@
 package com.workout.taskmanager.user.service;
 
+import com.workout.taskmanager.user.entity.CustomUserDetails;
 import com.workout.taskmanager.user.entity.User;
 import com.workout.taskmanager.user.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,12 +24,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(()-> new UsernameNotFoundException("Failed to find user with email: " + email));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("Failed to find user with email: " + email));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                List.of(new SimpleGrantedAuthority(user.getRole().toString()))
-        );
+        return new CustomUserDetails(user);
     }
 }

@@ -3,6 +3,8 @@ package com.workout.taskmanager.project.entity;
 import com.workout.taskmanager.project.enums.ProjectRole;
 import com.workout.taskmanager.user.entity.User;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,12 +12,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Entity
+@Getter
+@Setter
 @Table(
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_project_member_project_user",
@@ -36,5 +42,6 @@ public class ProjectMember {
     private User user;
 
     private LocalDateTime joinedAt;
+    @Enumerated(EnumType.STRING)
     private ProjectRole role;
 }

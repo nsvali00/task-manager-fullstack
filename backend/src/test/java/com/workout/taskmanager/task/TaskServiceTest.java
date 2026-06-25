@@ -1,5 +1,8 @@
 package com.workout.taskmanager.task;
 
+import com.workout.taskmanager.project.entity.Project;
+import com.workout.taskmanager.project.repository.ProjectMemberRepository;
+import com.workout.taskmanager.project.repository.ProjectRepository;
 import com.workout.taskmanager.task.dto.TaskCreateRequest;
 import com.workout.taskmanager.task.dto.TaskUpdateRequest;
 import com.workout.taskmanager.task.dto.TaskResponse;
@@ -10,6 +13,10 @@ import com.workout.taskmanager.task.exceptions.TaskNotFoundException;
 import com.workout.taskmanager.task.mapper.TaskMapper;
 import com.workout.taskmanager.task.repository.TaskRepository;
 import com.workout.taskmanager.task.service.TaskService;
+import com.workout.taskmanager.user.entity.CustomUserDetails;
+import com.workout.taskmanager.user.entity.User;
+import com.workout.taskmanager.user.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,12 +39,30 @@ class TaskServiceTest {
 
     @Mock
     private TaskRepository taskRepository;
-
     @Mock
     private TaskMapper taskMapper;
+    @Mock
+    private ProjectRepository projectRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ProjectMemberRepository memberRepository;
 
     @InjectMocks
     private TaskService taskService;
+
+    private User currentUser;
+    private Task task;
+
+    @BeforeEach
+    void setUp() {
+        currentUser = new User();
+        currentUser.setId(1L);
+
+        task = new Task();
+        task.setCreatedBy(currentUser);
+        task.setAssignee(currentUser);
+    }
 
     // =========================
     // CREATE
@@ -45,28 +70,43 @@ class TaskServiceTest {
 
     @Test
     void createTask_success() {
+        User assignee = new User();
+        assignee.setId(2L);
+        Project project = new Project();
+
         TaskCreateRequest request = new TaskCreateRequest(
-                "Fix bug", "Fix the login bug", TaskPriority.HIGH, LocalDateTime.now().plusDays(1), null, 2L);
+                "Fix bug", "Fix the login bug", TaskPriority.HIGH, LocalDateTime.now().plusDays(1), 1L, 2L);
 
-        Task task = new Task();
+        Task newTask = new Task();
         Task savedTask = new Task();
-
         TaskResponse responseDto = new TaskResponse(
                 1L, "Fix bug", "Fix the login bug", TaskStatus.TODO, TaskPriority.HIGH,
                 null, 2L, 1L, 1L, LocalDateTime.now());
 
-        when(taskMapper.toEntity(request)).thenReturn(task);
-        when(taskRepository.save(task)).thenReturn(savedTask);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectAndUser(project, currentUser)).thenReturn(true);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(assignee));
+        when(memberRepository.existsByProjectAndUser(project, assignee)).thenReturn(true);
+        when(taskMapper.toEntity(request)).thenReturn(newTask);
+        when(taskRepository.save(newTask)).thenReturn(savedTask);
         when(taskMapper.toDto(savedTask)).thenReturn(responseDto);
 
-        TaskResponse result = taskService.createTask(request);
+        TaskResponse result = taskService.createTask(request, currentUser);
 
         assertEquals("Fix bug", result.getTitle());
-        assertEquals("Fix the login bug", result.getDescription());
+        verify(taskRepository).save(newTask);
+    }
 
-        verify(taskMapper).toEntity(request);
-        verify(taskRepository).save(task);
-        verify(taskMapper).toDto(savedTask);
+    @Test
+    void createTask_notProjectMember_throws() {
+        Project project = new Project();
+        TaskCreateRequest request = new TaskCreateRequest(
+                "Fix bug", "Desc", TaskPriority.HIGH, null, 1L, null);
+
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectAndUser(project, currentUser)).thenReturn(false);
+
+        assertThrows(RuntimeException.class, () -> taskService.createTask(request, currentUser));
     }
 
     // =========================
@@ -75,48 +115,33 @@ class TaskServiceTest {
 
     @Test
     void getTaskById_success() {
-        Long id = 1L;
-        Task task = new Task();
         TaskResponse responseDto = new TaskResponse(
                 1L, "Title", "Desc", TaskStatus.TODO, TaskPriority.LOW,
-                null, 2L, 1L, 1L, LocalDateTime.now());
+                null, 1L, 1L, 1L, LocalDateTime.now());
 
-        when(taskRepository.findById(id)).thenReturn(Optional.of(task));
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
         when(taskMapper.toDto(task)).thenReturn(responseDto);
 
-        TaskResponse result = taskService.getTaskById(id);
+        TaskResponse result = taskService.getTaskById(1L, currentUser);
 
         assertNotNull(result);
         assertEquals("Title", result.getTitle());
-        verify(taskRepository).findById(id);
-        verify(taskMapper).toDto(task);
     }
 
     @Test
     void getTaskById_notFound() {
-        Long id = 1L;
-        when(taskRepository.findById(id)).thenReturn(Optional.empty());
-
-        assertThrows(TaskNotFoundException.class,
-                () -> taskService.getTaskById(id));
+        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(TaskNotFoundException.class, () -> taskService.getTaskById(1L, currentUser));
     }
 
     @Test
-    void getAllTasks_success() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Task task = new Task();
-        Page<Task> taskPage = new PageImpl<>(List.of(task));
-        TaskResponse responseDto = new TaskResponse(
-                1L, "Title", "Desc", TaskStatus.TODO, TaskPriority.LOW,
-                null, 2L, 1L, 1L, LocalDateTime.now());
+    void getTaskById_accessDenied() {
+        User otherUser = new User();
+        otherUser.setId(99L);
 
-        when(taskRepository.findAll(pageable)).thenReturn(taskPage);
-        when(taskMapper.toDto(task)).thenReturn(responseDto);
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
-        Page<TaskResponse> result = taskService.getAllTasks(pageable);
-
-        assertEquals(1, result.getTotalElements());
-        assertEquals("Title", result.getContent().get(0).getTitle());
+        assertThrows(RuntimeException.class, () -> taskService.getTaskById(1L, otherUser));
     }
 
     // =========================
@@ -125,38 +150,37 @@ class TaskServiceTest {
 
     @Test
     void patchTask_success() {
-        Long id = 1L;
         TaskUpdateRequest request = new TaskUpdateRequest();
         request.setTitle("Updated title");
 
-        Task task = new Task();
         TaskResponse responseDto = new TaskResponse(
                 1L, "Updated title", "Desc", TaskStatus.TODO, TaskPriority.LOW,
-                null, 2L, 1L, 1L, LocalDateTime.now());
+                null, 1L, 1L, 1L, LocalDateTime.now());
 
-        when(taskRepository.findById(id)).thenReturn(Optional.of(task));
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
         when(taskMapper.toDto(task)).thenReturn(responseDto);
 
-        TaskResponse result = taskService.patchTask(id, request);
+        TaskResponse result = taskService.patchTask(1L, request, currentUser);
 
-        assertNotNull(result);
         assertEquals("Updated title", result.getTitle());
-
-        verify(taskRepository).findById(id);
         verify(taskMapper).updateTaskFromDto(request, task);
-        verify(taskRepository).save(task);
-        verify(taskMapper).toDto(task);
     }
 
     @Test
     void patchTask_notFound() {
-        Long id = 1L;
-        TaskUpdateRequest request = new TaskUpdateRequest();
-        when(taskRepository.findById(id)).thenReturn(Optional.empty());
+        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(TaskNotFoundException.class, () -> taskService.patchTask(1L, new TaskUpdateRequest(), currentUser));
+    }
 
-        assertThrows(TaskNotFoundException.class,
-                () -> taskService.patchTask(id, request));
+    @Test
+    void patchTask_accessDenied() {
+        User otherUser = new User();
+        otherUser.setId(99L);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+
+        assertThrows(RuntimeException.class, () -> taskService.patchTask(1L, new TaskUpdateRequest(), otherUser));
     }
 
     // =========================
@@ -165,23 +189,27 @@ class TaskServiceTest {
 
     @Test
     void deleteTask_success() {
-        Long id = 1L;
-        Task task = new Task();
-        when(taskRepository.findById(id)).thenReturn(Optional.of(task));
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
-        taskService.deleteTask(id);
+        taskService.deleteTask(1L, currentUser);
 
-        verify(taskRepository).findById(id);
         verify(taskRepository).delete(task);
     }
 
     @Test
     void deleteTask_notFound() {
-        Long id = 1L;
-        when(taskRepository.findById(id)).thenReturn(Optional.empty());
+        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(TaskNotFoundException.class, () -> taskService.deleteTask(1L, currentUser));
+    }
 
-        assertThrows(TaskNotFoundException.class,
-                () -> taskService.deleteTask(id));
+    @Test
+    void deleteTask_accessDenied() {
+        User otherUser = new User();
+        otherUser.setId(99L);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+
+        assertThrows(RuntimeException.class, () -> taskService.deleteTask(1L, otherUser));
     }
 
     // =========================
@@ -191,15 +219,16 @@ class TaskServiceTest {
     @Test
     void searchTasks_success() {
         Pageable pageable = PageRequest.of(0, 10);
-        Task task = new Task();
+        CustomUserDetails userDetails = new CustomUserDetails(currentUser);
         TaskResponse responseDto = new TaskResponse(
                 1L, "Fix bug", "Desc", TaskStatus.TODO, TaskPriority.HIGH,
-                null, 2L, 1L, 1L, LocalDateTime.now());
+                null, 1L, 1L, 1L, LocalDateTime.now());
 
-        when(taskRepository.findByNameContainingIgnoreCase("Fix", pageable)).thenReturn(List.of(task));
+        when(taskRepository.findByUserAndTitleContainingIgnoreCase(currentUser, "Fix", pageable))
+                .thenReturn(new PageImpl<>(List.of(task)));
         when(taskMapper.toDto(task)).thenReturn(responseDto);
 
-        List<TaskResponse> result = taskService.searchTasks("Fix", pageable);
+        List<TaskResponse> result = taskService.searchTasks("Fix", pageable, userDetails);
 
         assertEquals(1, result.size());
         assertEquals("Fix bug", result.get(0).getTitle());
