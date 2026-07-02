@@ -1,6 +1,7 @@
 package com.workout.taskmanager.project.controller;
 
 import com.workout.taskmanager.common.ApiResponse;
+import com.workout.taskmanager.project.dto.ProjectMemberResponse;
 import com.workout.taskmanager.project.entity.ProjectMember;
 import com.workout.taskmanager.project.enums.ProjectRole;
 import com.workout.taskmanager.project.service.ProjectMemberService;
@@ -23,8 +24,9 @@ public class ProjectMemberController {
     ProjectMemberService projectMemberService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ProjectMember>> addMember(@RequestParam Long projectId, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam Long userId, @RequestParam ProjectRole role){
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(projectMemberService.addMember(projectId, userDetails.getUser(), userId, role), "Succesfully created new project member"));
+    public ResponseEntity<ApiResponse<ProjectMemberResponse>> addMember(@RequestParam Long projectId, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam Long userId, @RequestParam ProjectRole role){
+        ProjectMember member = projectMemberService.addMember(projectId, userDetails.getUser(), userId, role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(ProjectMemberResponse.from(member), "Successfully created new project member"));
     }
 
     @DeleteMapping

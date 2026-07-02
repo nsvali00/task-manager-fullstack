@@ -4,6 +4,7 @@ import com.workout.taskmanager.user.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +16,15 @@ public class JwtService {
     @Value("${jwt.access-expiration}")
     private Long accessExpirationMs;
 
-    private final SecretKey secretKey =
-            Keys.hmacShaKeyFor(
-                    "your-super-secret-key-must-be-at-least-32-characters"
-                            .getBytes()
-            );
+    @Value("${jwt.secret-key}")
+    private String secret;
+
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(User user) {
         return Jwts.builder()

@@ -2,6 +2,7 @@ package com.workout.taskmanager.project.entity;
 
 import com.workout.taskmanager.project.enums.ProjectRole;
 import com.workout.taskmanager.user.entity.User;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,6 +16,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -41,6 +43,8 @@ public class ProjectMember {
     @JoinColumn(name="user_id", nullable = false)
     private User user;
 
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime joinedAt;
     @Enumerated(EnumType.STRING)
     private ProjectRole role;

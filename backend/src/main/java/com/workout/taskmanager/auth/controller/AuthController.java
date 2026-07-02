@@ -1,5 +1,8 @@
 package com.workout.taskmanager.auth.controller;
 
+import com.workout.taskmanager.common.ApiResponse;
+import com.workout.taskmanager.common.exceptions.ConflictException;
+import com.workout.taskmanager.common.exceptions.InvalidTokenException;
 import com.workout.taskmanager.security.dto.LoginRequest;
 import com.workout.taskmanager.security.dto.LogoutRequest;
 import com.workout.taskmanager.security.dto.RefreshTokenRequest;
@@ -12,6 +15,8 @@ import com.workout.taskmanager.security.repository.RefreshTokenRepository;
 import com.workout.taskmanager.user.repository.UserRepository;
 import com.workout.taskmanager.security.service.JwtService;
 import com.workout.taskmanager.security.service.RefreshTokenService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -63,9 +68,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return "User already exists";
+            throw new ConflictException("User with this email already exists");
         }
         User user = new User();
         user.setEmail(request.getEmail());
@@ -74,23 +79,27 @@ public class AuthController {
         user.setLastName(request.getLastName());
         user.setRole(Role.USER);
         userRepository.save(user);
-        return "User registered successfully";
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(null, "User registered successfully"));
     }
 
     @PostMapping("/refresh")
     public AuthResponse refresh(
             @RequestBody RefreshTokenRequest request) {
-        RefreshToken refreshToken =
+        RefreshToken oldToken =
                 refreshTokenService.verifyToken(
                         request.getRefreshToken()
                 );
+        // Rotate: revoke old token, issue new one
+        RefreshToken newRefreshToken =
+                refreshTokenService.rotateToken(oldToken);
         String accessToken =
                 jwtService.generateToken(
-                        refreshToken.getUser()
+                        newRefreshToken.getUser()
                 );
         return new AuthResponse(
                 accessToken,
-                refreshToken.getToken()
+                newRefreshToken.getToken()
         );
     }
 
@@ -98,8 +107,9 @@ public class AuthController {
     public ResponseEntity<Void> logout(@RequestBody LogoutRequest request) {
         RefreshToken refreshToken =
                 refreshTokenRepository.findByToken(request.getRefreshToken())
-                        .orElseThrow(() -> new RuntimeException("Refresh token not found"));
-        refreshTokenRepository.delete(refreshToken);
+                        .orElseThrow(() -> new InvalidTokenException("Refresh token not found"));
+        refreshToken.setRevoked(true);
+        refreshTokenRepository.save(refreshToken);
         return ResponseEntity.ok().build();
     }
 }

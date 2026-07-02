@@ -1,6 +1,7 @@
 package com.workout.taskmanager.task.controller;
 
 import com.workout.taskmanager.common.ApiResponse;
+import com.workout.taskmanager.common.dto.PageResponse;
 import com.workout.taskmanager.task.dto.TaskCreateRequest;
 import com.workout.taskmanager.task.dto.TaskUpdateRequest;
 import com.workout.taskmanager.task.dto.TaskResponse;
@@ -36,10 +37,9 @@ public class TaskController {
 
     @Operation(summary = "Get all tasks with pagination, sorting")
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<TaskResponse>>> getAllTask(Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<PageResponse<TaskResponse>>> getAllTask(Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Page<TaskResponse> allTasks = taskService.getAllTasks(pageable, userDetails.getUser());
-        ApiResponse<Page<TaskResponse>> apiResponse = ApiResponse.success(allTasks, "Tasks fetched successfully");
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(allTasks), "Tasks fetched successfully"));
     }
 
     @Operation(summary = "Get task by specific ID")

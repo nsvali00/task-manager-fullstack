@@ -1,13 +1,14 @@
 package com.workout.taskmanager.project.controller;
 
 import com.workout.taskmanager.common.ApiResponse;
+import com.workout.taskmanager.common.dto.PageResponse;
 import com.workout.taskmanager.project.dto.ProjectCreateRequest;
+import com.workout.taskmanager.project.dto.ProjectResponse;
 import com.workout.taskmanager.project.entity.Project;
 import com.workout.taskmanager.project.service.ProjectService;
 import com.workout.taskmanager.user.entity.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -28,18 +29,22 @@ public class ProjectController {
 
     @Operation(summary = "Create new project")
     @PostMapping
-    public ResponseEntity<ApiResponse<Project>> createProject(@RequestBody ProjectCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(projectService.createProject(request, userDetails.getUser()), "Project created successfully"));
+    public ResponseEntity<ApiResponse<ProjectResponse>> createProject(@RequestBody ProjectCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Project project = projectService.createProject(request, userDetails.getUser());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(ProjectResponse.from(project), "Project created successfully"));
     }
+
     @Operation(summary = "Get project by specific ID")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Project>> getProjectById(@PathVariable Long id){
-        return ResponseEntity.ok(ApiResponse.success(projectService.getProjectById(id), "Found project with id " + id));
+    public ResponseEntity<ApiResponse<ProjectResponse>> getProjectById(@PathVariable Long id) {
+        Project project = projectService.getProjectById(id);
+        return ResponseEntity.ok(ApiResponse.success(ProjectResponse.from(project), "Found project with id " + id));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<Project>>> getAllProjects(Pageable pageable){
-        return ResponseEntity.ok(ApiResponse.success(projectService.getAllProjects(pageable), "Successfully fetched all projects"));
+    public ResponseEntity<ApiResponse<PageResponse<ProjectResponse>>> getAllProjects(Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Page<ProjectResponse> page = projectService.getAllProjects(pageable, userDetails.getUser()).map(ProjectResponse::from);
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(page), "Successfully fetched all projects"));
     }
 
 }

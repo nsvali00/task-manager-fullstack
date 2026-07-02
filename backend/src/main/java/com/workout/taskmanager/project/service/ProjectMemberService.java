@@ -1,5 +1,8 @@
 package com.workout.taskmanager.project.service;
 
+import com.workout.taskmanager.common.exceptions.AccessDeniedException;
+import com.workout.taskmanager.common.exceptions.ConflictException;
+import com.workout.taskmanager.common.exceptions.ResourceNotFoundException;
 import com.workout.taskmanager.project.entity.Project;
 import com.workout.taskmanager.project.entity.ProjectMember;
 import com.workout.taskmanager.project.enums.ProjectRole;
@@ -21,24 +24,23 @@ public class ProjectMemberService {
     public ProjectMember addMember(Long projectId, User user, Long addUserId, ProjectRole role) {
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id " + projectId));
 
         boolean isOwner = project.getOwner().getId().equals(user.getId());
         if (!isOwner && !projectMemberRepository.existsByProjectAndUser(project, user)) {
-            throw new RuntimeException("Access denied: not a project owner or member");
+            throw new AccessDeniedException("Access denied: not a project owner or member");
         }
 
         User userToAdd = userRepository.findById(addUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + addUserId));
 
         if (projectMemberRepository.existsByProjectAndUser(project, userToAdd)) {
-            throw new RuntimeException("User already member of project");
+            throw new ConflictException("User is already a member of this project");
         }
 
         ProjectMember member = new ProjectMember();
         member.setProject(project);
-        member.setUser(user);
+        member.setUser(userToAdd);
         member.setRole(role);
 
         return projectMemberRepository.save(member);
@@ -46,10 +48,10 @@ public class ProjectMemberService {
 
     public void removeMember(Long projectId, User user) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id " + projectId));
         ProjectMember member = projectMemberRepository
                 .findByProjectAndUser(project, user)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found in project"));
 
         projectMemberRepository.delete(member);
     }

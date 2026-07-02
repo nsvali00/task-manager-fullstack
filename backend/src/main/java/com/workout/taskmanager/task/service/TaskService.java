@@ -2,6 +2,7 @@ package com.workout.taskmanager.task.service;
 
 import com.workout.taskmanager.common.enums.Role;
 import com.workout.taskmanager.common.exceptions.AccessDeniedException;
+import com.workout.taskmanager.common.exceptions.ResourceNotFoundException;
 import com.workout.taskmanager.project.entity.Project;
 import com.workout.taskmanager.project.repository.ProjectMemberRepository;
 import com.workout.taskmanager.project.repository.ProjectRepository;
@@ -40,7 +41,7 @@ public class TaskService {
 
     public Page<TaskResponse> getAllTasks(Pageable pageable, User user) {
         Page<Task> allTasks = taskRepository.findByUser(user,pageable);
-        return allTasks.map(taskMapper::toDto);
+        return allTasks.map(TaskResponse::from);
     }
 
     public TaskResponse getTaskById(Long id, User user) {
@@ -50,22 +51,24 @@ public class TaskService {
             return new TaskNotFoundException(id);
         });
         checkAccess(task,user);
-        return taskMapper.toDto(task);
+        return TaskResponse.from(task);
     }
 
     public TaskResponse createTask(TaskCreateRequest newTaskDto, User currentUser) {
         log.info("Creating task with title: {}", newTaskDto.title());
-        Project project = projectRepository.findById(newTaskDto.projectId()).orElseThrow(()->new RuntimeException("Failed to find project with id " + newTaskDto.projectId()));
+        Project project = projectRepository.findById(newTaskDto.projectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id " + newTaskDto.projectId()));
         if (!memberRepository.existsByProjectAndUser(project, currentUser)) {
-            throw new RuntimeException("Not a project member");
+            throw new AccessDeniedException("Not a project member");
         }
         User assignee = null;
         if(newTaskDto.assigneeId() != null){
-            assignee = userRepository.findById(newTaskDto.assigneeId()).orElseThrow(()-> new RuntimeException("Failed to find assignee by id " + newTaskDto.assigneeId()));
+            assignee = userRepository.findById(newTaskDto.assigneeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + newTaskDto.assigneeId()));
         }
         if (assignee != null &&
                 !memberRepository.existsByProjectAndUser(project, assignee)) {
-            throw new RuntimeException("Assignee must be project member");
+            throw new AccessDeniedException("Assignee must be a project member");
         }
         Task task = new Task();
         task.setTitle(newTaskDto.title());
@@ -78,7 +81,7 @@ public class TaskService {
         task.setCreatedBy(currentUser);
         task = taskRepository.save(task);
         log.info("Task created successfully with id: {}", task.getId());
-        return taskMapper.toDto(task);
+        return TaskResponse.from(task);
     }
 
     public TaskResponse patchTask(Long id, TaskUpdateRequest request, User user) {
@@ -92,7 +95,7 @@ public class TaskService {
         taskMapper.updateTaskFromDto(request, task);
         task = taskRepository.save(task);
         log.info("Task updated successfully with id: {}", id);
-        return taskMapper.toDto(task);
+        return TaskResponse.from(task);
     }
 
     public void deleteTask(Long id, User user) {
@@ -107,7 +110,7 @@ public class TaskService {
 
     public List<TaskResponse> searchTasks(String title, Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails){
         Page<Task> tasks = taskRepository.findByUserAndTitleContainingIgnoreCase(userDetails.getUser(), title, pageable);
-        return tasks.stream().map(taskMapper::toDto).toList();
+        return tasks.stream().map(TaskResponse::from).toList();
     }
 
     private void checkAccess(Task task, User user){

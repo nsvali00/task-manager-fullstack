@@ -1,7 +1,10 @@
 package com.workout.taskmanager.comment.repository;
 
-import com.workout.taskmanager.user.entity.User;
+import com.workout.taskmanager.comment.entity.Comment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CommentRepository extends JpaRepository<User, Long> {
+public interface CommentRepository extends JpaRepository<Comment, Long> {
+    Page<Comment> findByTaskId(Long taskId, Pageable pageable);
 }
