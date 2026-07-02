@@ -40,4 +40,11 @@ public class ApiResponse<T> {
     public void setStatus(HttpStatus status) {
         this.status = status;
     }
+
+    public static <T> ApiResponse<T> success(T data, String message){
+        return new ApiResponse<>(data, message, HttpStatus.OK);
+    }
+    public static <T> ApiResponse<T> created(T data, String message){
+        return new ApiResponse<>(data, message, HttpStatus.CREATED);
+    }
 }

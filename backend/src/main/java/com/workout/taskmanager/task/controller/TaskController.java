@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,10 +38,7 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<TaskResponse>>> getAllTask(Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Page<TaskResponse> allTasks = taskService.getAllTasks(pageable, userDetails.getUser());
-        ApiResponse<Page<TaskResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setData(allTasks);
-        apiResponse.setStatus(HttpStatus.OK);
-        apiResponse.setMessage("Tasks fetched successfully");
+        ApiResponse<Page<TaskResponse>> apiResponse = ApiResponse.success(allTasks, "Tasks fetched successfully");
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -48,33 +46,29 @@ public class TaskController {
     @GetMapping("/{id}")
     private ResponseEntity<ApiResponse<TaskResponse>> getTaskById(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         TaskResponse taskResponseDTO = taskService.getTaskById(id, userDetails.getUser());
-        ApiResponse<TaskResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setData(taskResponseDTO);
-        apiResponse.setStatus(HttpStatus.OK);
-        apiResponse.setMessage("Task fetched successfully");
+        ApiResponse<TaskResponse> apiResponse = ApiResponse.success(taskResponseDTO,"Task fetched successfully");
         return ResponseEntity.ok(apiResponse);
     }
 
     @Operation(summary = "Create new task")
     @PostMapping
     public ResponseEntity<ApiResponse<TaskResponse>> createTask(@RequestBody TaskCreateRequest newTask,
-                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+//                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                                Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         TaskResponse created = taskService.createTask(newTask, userDetails.getUser());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(created, "Task created successfully", HttpStatus.CREATED));
+                .body(ApiResponse.created(created, "Task created successfully"));
     }
 
     @Operation(summary = "Update task")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<TaskResponse>> patch(@PathVariable Long id, @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-
         TaskResponse updated = taskService.patchTask(id, request, userDetails.getUser());
-
-        return ResponseEntity.ok(new ApiResponse<>(updated, "Task updated", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.success(updated, "Task updated"));
     }
 
     @Operation(summary = "Remove specific task by ID")
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         taskService.deleteTask(id, userDetails.getUser());
@@ -86,8 +80,7 @@ public class TaskController {
     public ResponseEntity<ApiResponse<List<TaskResponse>>> searchTasks(
             @RequestParam String name, @ParameterObject Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<TaskResponse> result = taskService.searchTasks(name, pageable, userDetails);
-        return ResponseEntity.ok(
-                new ApiResponse<>(result, "Search results", HttpStatus.OK)
+        return ResponseEntity.ok(ApiResponse.success(result, "Search results")
         );
     }
 

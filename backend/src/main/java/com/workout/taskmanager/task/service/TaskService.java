@@ -1,5 +1,7 @@
 package com.workout.taskmanager.task.service;
 
+import com.workout.taskmanager.common.enums.Role;
+import com.workout.taskmanager.common.exceptions.AccessDeniedException;
 import com.workout.taskmanager.project.entity.Project;
 import com.workout.taskmanager.project.repository.ProjectMemberRepository;
 import com.workout.taskmanager.project.repository.ProjectRepository;
@@ -14,6 +16,7 @@ import com.workout.taskmanager.task.repository.TaskRepository;
 import com.workout.taskmanager.user.entity.CustomUserDetails;
 import com.workout.taskmanager.user.entity.User;
 import com.workout.taskmanager.user.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -24,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class TaskService {
 
     private static final Logger log = LoggerFactory.getLogger(TaskService.class);
@@ -33,14 +37,6 @@ public class TaskService {
     private final UserRepository userRepository;
     private final ProjectMemberRepository memberRepository;
 
-
-    public TaskService(TaskRepository taskRepository, TaskMapper taskMapper, ProjectRepository projectRepository, UserRepository userRepository, ProjectMemberRepository memberRepository) {
-        this.taskRepository = taskRepository;
-        this.taskMapper = taskMapper;
-        this.projectRepository = projectRepository;
-        this.userRepository = userRepository;
-        this.memberRepository = memberRepository;
-    }
 
     public Page<TaskResponse> getAllTasks(Pageable pageable, User user) {
         Page<Task> allTasks = taskRepository.findByUser(user,pageable);
@@ -53,7 +49,7 @@ public class TaskService {
             log.warn("Task not found with id {}", id);
             return new TaskNotFoundException(id);
         });
-        checkOwnership(user, task);
+        checkAccess(task,user);
         return taskMapper.toDto(task);
     }
 
@@ -71,8 +67,11 @@ public class TaskService {
                 !memberRepository.existsByProjectAndUser(project, assignee)) {
             throw new RuntimeException("Assignee must be project member");
         }
-
-        Task task = taskMapper.toEntity(newTaskDto);
+        Task task = new Task();
+        task.setTitle(newTaskDto.title());
+        task.setDescription(newTaskDto.description());
+        task.setPriority(newTaskDto.priority());
+        task.setDueDate(newTaskDto.dueDate());
         task.setStatus(TaskStatus.TODO);
         task.setProject(project);
         task.setAssignee(assignee);
@@ -89,7 +88,7 @@ public class TaskService {
                     log.warn("Cannot update, task not found with id: {}", id);
                     return new TaskNotFoundException(id);
                 });
-        checkOwnership(user, task);
+        checkAccess(task,user);
         taskMapper.updateTaskFromDto(request, task);
         task = taskRepository.save(task);
         log.info("Task updated successfully with id: {}", id);
@@ -102,21 +101,24 @@ public class TaskService {
             log.warn("Cannot delete, task not found with id: {}", id);
             return new TaskNotFoundException(id);
         });
-        checkOwnership(user, task);
+        checkAccess(task,user);
         taskRepository.delete(task);
     }
 
     public List<TaskResponse> searchTasks(String title, Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails){
         Page<Task> tasks = taskRepository.findByUserAndTitleContainingIgnoreCase(userDetails.getUser(), title, pageable);
-
         return tasks.stream().map(taskMapper::toDto).toList();
     }
 
-    private static void checkOwnership(User user, Task task) {
-        if(!task.getCreatedBy().getId().equals(user.getId()) && !task.getAssignee().getId().equals(user.getId())){
-            throw new RuntimeException("Access denied");
+    private void checkAccess(Task task, User user){
+        boolean isOwner = task.getCreatedBy().getId().equals(user.getId()) || task.getAssignee().getId().equals(user.getId());
+        boolean isAdmin = user.getRole().equals(Role.ADMIN);
+
+        if(!isOwner && !isAdmin){
+            throw new AccessDeniedException("Access denied");
         }
     }
+
 
 
 }

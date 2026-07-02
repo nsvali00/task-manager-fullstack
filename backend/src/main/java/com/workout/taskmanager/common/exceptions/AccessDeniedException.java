@@ -1,4 +1,7 @@
 package com.workout.taskmanager.common.exceptions;
 
-public class AccessDeniedException {
+public class AccessDeniedException extends RuntimeException{
+    public AccessDeniedException(String message) {
+        super(message);
+    }
 }

@@ -70,6 +70,8 @@ public class AuthController {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
         user.setRole(Role.USER);
         userRepository.save(user);
         return "User registered successfully";

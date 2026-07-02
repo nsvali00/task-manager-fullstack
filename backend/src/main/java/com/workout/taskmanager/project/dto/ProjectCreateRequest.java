@@ -1,4 +1,3 @@
 package com.workout.taskmanager.project.dto;
 
-public class ProjectCreateRequest {
-}
+public record ProjectCreateRequest(String name, String description) {}
