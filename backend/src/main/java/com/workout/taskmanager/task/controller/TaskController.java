@@ -75,14 +75,13 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Search tasks by name with pagination and sorting")
+    @Operation(summary = "Search tasks by title with pagination and sorting")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> searchTasks(
-            @RequestParam String name, @ParameterObject Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<TaskResponse> result = taskService.searchTasks(name, pageable, userDetails);
+            @RequestParam String title, @ParameterObject Pageable pageable, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<TaskResponse> result = taskService.searchTasks(title, pageable, userDetails);
         return ResponseEntity.ok(ApiResponse.success(result, "Search results")
         );
     }
-
 
 }
