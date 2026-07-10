@@ -12,6 +12,7 @@ import com.workout.taskmanager.sprint.service.SprintService;
 import com.workout.taskmanager.user.entity.CustomUserDetails;
 import com.workout.taskmanager.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,8 +36,8 @@ public class SprintController {
     private SprintService sprintService;
 
     @Operation(summary = "Create new sprint")
-    @PostMapping("/project/{projectId}/sprints")
-    public ResponseEntity<ApiResponse<SprintResponse>> createSprint(@PathVariable Long projectId, @RequestBody SprintCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    @PostMapping("/projects/{projectId}/sprints")
+    public ResponseEntity<ApiResponse<SprintResponse>> createSprint(@PathVariable Long projectId, @Valid @RequestBody SprintCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
         SprintResponse sprint = sprintService.createSprint(projectId, request, userDetails.getUser());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(sprint, "Sprint created successfully"));
     }

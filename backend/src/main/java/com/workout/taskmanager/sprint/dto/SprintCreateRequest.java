@@ -1,4 +1,6 @@
 package com.workout.taskmanager.sprint.dto;
 
-public record SprintCreateRequest(String name, Long projectId) {
+import jakarta.validation.constraints.NotBlank;
+
+public record SprintCreateRequest(@NotBlank String name, Long projectId) {
 }

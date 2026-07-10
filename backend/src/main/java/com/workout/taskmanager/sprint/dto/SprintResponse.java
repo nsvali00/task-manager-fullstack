@@ -15,6 +15,7 @@ public record SprintResponse(Long id, String name, SprintStatus status, Long pro
                 sprint.getProject().getId(),
                 sprint.getCreatedAt()
         );
+
     }
 
 }
