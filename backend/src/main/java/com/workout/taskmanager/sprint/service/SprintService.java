@@ -3,7 +3,6 @@ package com.workout.taskmanager.sprint.service;
 import com.workout.taskmanager.common.exceptions.AccessDeniedException;
 import com.workout.taskmanager.common.exceptions.ResourceNotFoundException;
 import com.workout.taskmanager.project.entity.Project;
-import com.workout.taskmanager.project.entity.ProjectMember;
 import com.workout.taskmanager.project.repository.ProjectMemberRepository;
 import com.workout.taskmanager.project.repository.ProjectRepository;
 import com.workout.taskmanager.sprint.dto.SprintCreateRequest;
@@ -14,7 +13,6 @@ import com.workout.taskmanager.sprint.enums.SprintStatus;
 import com.workout.taskmanager.sprint.repository.SprintRepository;
 import com.workout.taskmanager.user.entity.User;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -61,8 +56,17 @@ public class SprintService {
     public SprintResponse updateSprint(Long sprintId, SprintUpdateRequest request, User currentUser){
         Sprint sprint = sprintRepository.findById(sprintId).orElseThrow(() -> new ResourceNotFoundException("Sprint not found with id " + sprintId));
         checkMembershipAndGetProject(sprint.getProject().getId(), currentUser);
-
+        if (sprint.getStatus() == SprintStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot modify a completed sprint");
+        }
         if(request.status() !=null){
+            if(request.status() == SprintStatus.ACTIVE){
+                boolean alreadyActive = sprintRepository.existsByProjectIdAndStatusAndIdNot(
+                        sprint.getProject().getId(), SprintStatus.ACTIVE, sprint.getId());
+                if (alreadyActive) {
+                    throw new IllegalStateException("Project already has an active sprint");
+                }
+            }
             sprint.setStatus(request.status());
         }
         if(!ObjectUtils.isEmpty(request.name())){
@@ -77,6 +81,7 @@ public class SprintService {
         Sprint sprint = sprintRepository.findById(sprintId).orElseThrow(() -> new ResourceNotFoundException("Failed to find sprint with id " + sprintId));
         checkMembershipAndGetProject(sprint.getProject().getId(), currentUser);
         sprintRepository.delete(sprint);
+
 
     }
 

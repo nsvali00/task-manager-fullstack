@@ -1,12 +1,11 @@
 package com.workout.taskmanager.common;
 
-
 import org.springframework.http.HttpStatus;
 
 public class ApiResponse<T> {
-    T data;
-    String message;
-    HttpStatus status;
+    private T data;
+    private String message;
+    private HttpStatus status;
 
     public ApiResponse() {
     }
@@ -41,10 +40,11 @@ public class ApiResponse<T> {
         this.status = status;
     }
 
-    public static <T> ApiResponse<T> success(T data, String message){
+    public static <T> ApiResponse<T> success(T data, String message) {
         return new ApiResponse<>(data, message, HttpStatus.OK);
     }
-    public static <T> ApiResponse<T> created(T data, String message){
+
+    public static <T> ApiResponse<T> created(T data, String message) {
         return new ApiResponse<>(data, message, HttpStatus.CREATED);
     }
 }

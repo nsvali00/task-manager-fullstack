@@ -1,9 +1,18 @@
 package com.workout.taskmanager.user.entity;
 
 import com.workout.taskmanager.common.enums.Role;
+import com.workout.taskmanager.issue.entity.Issue;
 import com.workout.taskmanager.project.entity.ProjectMember;
-import com.workout.taskmanager.task.entity.Task;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,8 +52,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade= CascadeType.ALL, orphanRemoval = true)
     private List<ProjectMember> members;
     @OneToMany(mappedBy = "assignee")
-    private List<Task> assignedTasks = new ArrayList<>();
-    @OneToMany(mappedBy = "createdBy")
-    private List<Task> createdTasks = new ArrayList<>();
+    private List<Issue> assignedIssue = new ArrayList<>();
+    @OneToMany(mappedBy = "reporter")
+    private List<Issue> createdIssue = new ArrayList<>();
 
 }

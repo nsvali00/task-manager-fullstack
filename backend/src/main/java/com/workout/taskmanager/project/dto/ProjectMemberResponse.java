@@ -2,23 +2,12 @@ package com.workout.taskmanager.project.dto;
 
 import com.workout.taskmanager.project.entity.ProjectMember;
 import com.workout.taskmanager.project.enums.ProjectRole;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Getter
-@AllArgsConstructor
-public class ProjectMemberResponse {
-    private Long id;
-    private Long projectId;
-    private String projectName;
-    private Long userId;
-    private String userEmail;
-    private String userFirstName;
-    private String userLastName;
-    private ProjectRole role;
-    private LocalDateTime joinedAt;
+public record ProjectMemberResponse(Long id, Long projectId, String projectName, Long userId,
+                                    String userEmail, String userFirstName, String userLastName,
+                                    ProjectRole role, LocalDateTime joinedAt) {
 
     public static ProjectMemberResponse from(ProjectMember member) {
         return new ProjectMemberResponse(

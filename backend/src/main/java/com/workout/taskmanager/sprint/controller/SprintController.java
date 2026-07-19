@@ -63,8 +63,8 @@ public class SprintController {
 
     @Operation(summary = "Delete sprint")
     @DeleteMapping("/sprints/{id}")
-    public ResponseEntity<Void> deleteSprint(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponse<Void>> deleteSprint(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails){
         sprintService.deleteSprint(id,userDetails.getUser());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null, "Sprint deleted successfully"));
     }
 }

@@ -1,37 +1,16 @@
 package com.workout.taskmanager.project.dto;
 
 import com.workout.taskmanager.project.entity.Project;
-import com.workout.taskmanager.project.entity.ProjectMember;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@AllArgsConstructor
-public class ProjectResponse {
-    private Long id;
-    private String name;
-    private String description;
-    private Long ownerId;
-    private String ownerEmail;
-    private String ownerFirstName;
-    private String ownerLastName;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private List<MemberSummary> members;
+public record ProjectResponse(Long id, String name, String description, Long ownerId, String ownerEmail,
+                              String ownerFirstName, String ownerLastName, LocalDateTime createdAt,
+                              LocalDateTime updatedAt, List<MemberSummary> members) {
 
-    @Getter
-    @AllArgsConstructor
-    public static class MemberSummary {
-        private Long id;
-        private Long userId;
-        private String email;
-        private String firstName;
-        private String lastName;
-        private String role;
-        private LocalDateTime joinedAt;
+    public record MemberSummary(Long id, Long userId, String email, String firstName,
+                                String lastName, String role, LocalDateTime joinedAt) {
     }
 
     public static ProjectResponse from(Project project) {

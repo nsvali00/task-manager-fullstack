@@ -22,37 +22,35 @@ public class ProjectMemberService {
     private final ProjectMemberRepository projectMemberRepository;
 
     public ProjectMember addMember(Long projectId, User user, Long addUserId, ProjectRole role) {
-
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id " + projectId));
-
         boolean isOwner = project.getOwner().getId().equals(user.getId());
-        if (!isOwner && !projectMemberRepository.existsByProjectAndUser(project, user)) {
-            throw new AccessDeniedException("Access denied: not a project owner or member");
+        if (!isOwner) {
+            throw new AccessDeniedException("Only the project owner can add members");
         }
-
         User userToAdd = userRepository.findById(addUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + addUserId));
-
         if (projectMemberRepository.existsByProjectAndUser(project, userToAdd)) {
             throw new ConflictException("User is already a member of this project");
         }
-
         ProjectMember member = new ProjectMember();
         member.setProject(project);
         member.setUser(userToAdd);
         member.setRole(role);
-
         return projectMemberRepository.save(member);
     }
 
     public void removeMember(Long projectId, User user) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id " + projectId));
+
+        if (project.getOwner().getId().equals(user.getId())) {
+            throw new ConflictException("Project owner cannot leave the project. Transfer ownership or delete the project instead.");
+        }
+
         ProjectMember member = projectMemberRepository
                 .findByProjectAndUser(project, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found in project"));
-
         projectMemberRepository.delete(member);
     }
 }

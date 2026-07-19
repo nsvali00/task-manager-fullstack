@@ -1,6 +1,6 @@
 package com.workout.taskmanager.comment.entity;
 
-import com.workout.taskmanager.task.entity.Task;
+import com.workout.taskmanager.issue.entity.Issue;
 import com.workout.taskmanager.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,8 +33,8 @@ public class Comment {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "task_id", nullable = false)
-    private Task task;
+    @JoinColumn(name = "issue_id", nullable = false)
+    private Issue issue;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

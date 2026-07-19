@@ -17,7 +17,7 @@ public record IssueResponse(Long id,String title, String description, IssueStatu
                 issue.getPriority(),
                 issue.getType(),
                 issue.getProject().getId(),
-                issue.getSprint().getId(),
+                issue.getSprint() != null ? issue.getSprint().getId() : null,
                 issue.getAssignee() != null ? issue.getAssignee().getId() : null,
                 issue.getReporter().getId()
         );

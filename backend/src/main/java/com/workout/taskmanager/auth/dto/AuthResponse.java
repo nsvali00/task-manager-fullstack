@@ -1,14 +1,4 @@
 package com.workout.taskmanager.auth.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
-@AllArgsConstructor
-public class AuthResponse {
-    private String accessToken;
-    private String refreshToken;
-
+public record AuthResponse(String accessToken, String refreshToken) {
 }

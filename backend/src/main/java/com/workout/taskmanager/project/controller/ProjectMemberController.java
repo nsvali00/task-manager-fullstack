@@ -30,7 +30,7 @@ public class ProjectMemberController {
     }
 
     @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> removeMember(@RequestParam Long projectId, @AuthenticationPrincipal CustomUserDetails userDetails, Long userId){
+    public ResponseEntity<ApiResponse<Void>> removeMember(@RequestParam Long projectId, @AuthenticationPrincipal CustomUserDetails userDetails){
         projectMemberService.removeMember(projectId,userDetails.getUser());
         return ResponseEntity.noContent().build();
     }

@@ -10,20 +10,24 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple in-memory rate limiter for login attempts.
- * Limits to 5 attempts per IP per 15-minute window.
+ * Limits to 5 failed attempts per IP per 15-minute window.
+ * Only increments count on failed login attempts (non-2xx response).
  */
 @Component
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 
     private static final int MAX_ATTEMPTS = 5;
     private static final long WINDOW_SECONDS = 900; // 15 minutes
+    private static final long EVICTION_INTERVAL_SECONDS = 300; // Clean up every 5 minutes
 
     private final Map<String, AttemptInfo> attempts = new ConcurrentHashMap<>();
+    private volatile Instant lastEviction = Instant.now();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -39,7 +43,9 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        String clientIp = getClientIp(request);
+        evictExpiredEntries();
+
+        String clientIp = request.getRemoteAddr();
         AttemptInfo info = attempts.compute(clientIp, (key, existing) -> {
             if (existing == null || existing.isExpired()) {
                 return new AttemptInfo();
@@ -58,16 +64,28 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        info.increment();
         filterChain.doFilter(request, response);
+
+        // Only count failed attempts (non-2xx responses)
+        if (response.getStatus() >= 400) {
+            info.increment();
+        }
     }
 
-    private String getClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
+    /**
+     * Periodically remove expired entries to prevent unbounded memory growth.
+     */
+    private void evictExpiredEntries() {
+        Instant now = Instant.now();
+        if (now.isAfter(lastEviction.plusSeconds(EVICTION_INTERVAL_SECONDS))) {
+            lastEviction = now;
+            Iterator<Map.Entry<String, AttemptInfo>> it = attempts.entrySet().iterator();
+            while (it.hasNext()) {
+                if (it.next().getValue().isExpired()) {
+                    it.remove();
+                }
+            }
         }
-        return request.getRemoteAddr();
     }
 
     private static class AttemptInfo {

@@ -1,6 +1,5 @@
 package com.workout.taskmanager.auth;
 
-import com.workout.taskmanager.auth.dto.AuthResponse;
 import com.workout.taskmanager.security.dto.LoginRequest;
 import com.workout.taskmanager.security.dto.RefreshTokenRequest;
 import com.workout.taskmanager.security.dto.RegisterRequest;
@@ -117,14 +116,13 @@ class AuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
+                .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
                 .andReturn();
 
-        AuthResponse response = objectMapper.readValue(
-                result.getResponse().getContentAsString(), AuthResponse.class);
-        accessToken = response.getAccessToken();
-        refreshToken = response.getRefreshToken();
+        String json = result.getResponse().getContentAsString();
+        accessToken = com.jayway.jsonpath.JsonPath.read(json, "$.data.accessToken");
+        refreshToken = com.jayway.jsonpath.JsonPath.read(json, "$.data.refreshToken");
     }
 
     @Test
@@ -143,24 +141,36 @@ class AuthIntegrationTest {
     @Test
     @Order(7)
     void refresh_success_rotatesToken() throws Exception {
+        // First login to get a valid refresh token
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("integration@test.com");
+        loginRequest.setPassword("password123");
+
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String loginJson = loginResult.getResponse().getContentAsString();
+        String currentRefreshToken = com.jayway.jsonpath.JsonPath.read(loginJson, "$.data.refreshToken");
+
         RefreshTokenRequest request = new RefreshTokenRequest();
-        request.setRefreshToken(refreshToken);
+        request.setRefreshToken(currentRefreshToken);
 
         MvcResult result = mockMvc.perform(post("/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
+                .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
                 .andReturn();
 
-        AuthResponse response = objectMapper.readValue(
-                result.getResponse().getContentAsString(), AuthResponse.class);
+        String json = result.getResponse().getContentAsString();
+        String newRefreshToken = com.jayway.jsonpath.JsonPath.read(json, "$.data.refreshToken");
 
-        assertNotEquals(refreshToken, response.getRefreshToken(),
+        assertNotEquals(currentRefreshToken, newRefreshToken,
                 "Refresh token should be rotated on each use");
-
-        refreshToken = response.getRefreshToken();
     }
 
     @Test

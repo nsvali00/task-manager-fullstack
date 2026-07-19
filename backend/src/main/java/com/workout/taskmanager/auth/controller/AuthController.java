@@ -1,14 +1,17 @@
 package com.workout.taskmanager.auth.controller;
 
 import com.workout.taskmanager.common.ApiResponse;
+import com.workout.taskmanager.common.exceptions.AccessDeniedException;
 import com.workout.taskmanager.common.exceptions.ConflictException;
 import com.workout.taskmanager.common.exceptions.InvalidTokenException;
+import com.workout.taskmanager.common.exceptions.ResourceNotFoundException;
 import com.workout.taskmanager.security.dto.LoginRequest;
 import com.workout.taskmanager.security.dto.LogoutRequest;
 import com.workout.taskmanager.security.dto.RefreshTokenRequest;
 import com.workout.taskmanager.security.dto.RegisterRequest;
 import com.workout.taskmanager.auth.dto.AuthResponse;
 import com.workout.taskmanager.security.entity.RefreshToken;
+import com.workout.taskmanager.user.entity.CustomUserDetails;
 import com.workout.taskmanager.user.entity.User;
 import com.workout.taskmanager.common.enums.Role;
 import com.workout.taskmanager.security.repository.RefreshTokenRepository;
@@ -20,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,21 +53,22 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody @Valid LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
                 )
         );
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-        String accessToken =
-                jwtService.generateToken(user);
-        RefreshToken refreshToken =
-                refreshTokenService.createRefreshToken(user);
-        return new AuthResponse(
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Invalid email or password"));
+
+        String accessToken = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+        return ResponseEntity.ok(ApiResponse.success(new AuthResponse(
                 accessToken,
-                refreshToken.getToken()
+                refreshToken.getToken()), "Successfully logged in")
         );
     }
 
@@ -84,8 +89,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public AuthResponse refresh(
-            @RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(
+            @RequestBody @Valid RefreshTokenRequest request) {
         RefreshToken oldToken =
                 refreshTokenService.verifyToken(
                         request.getRefreshToken()
@@ -97,19 +102,22 @@ public class AuthController {
                 jwtService.generateToken(
                         newRefreshToken.getUser()
                 );
-        return new AuthResponse(
+        return ResponseEntity.ok(ApiResponse.success(new AuthResponse(
                 accessToken,
-                newRefreshToken.getToken()
+                newRefreshToken.getToken()),"Successfully refreshed token")
         );
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody LogoutRequest request) {
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody @Valid LogoutRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
         RefreshToken refreshToken =
                 refreshTokenRepository.findByToken(request.getRefreshToken())
                         .orElseThrow(() -> new InvalidTokenException("Refresh token not found"));
+        if (!refreshToken.getUser().getId().equals(userDetails.getUser().getId())) {
+            throw new AccessDeniedException("This refresh token does not belong to you");
+        }
         refreshToken.setRevoked(true);
         refreshTokenRepository.save(refreshToken);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null, "Logged out successfully"));
     }
 }

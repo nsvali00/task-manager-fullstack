@@ -1,7 +1,7 @@
 package com.workout.taskmanager.project.entity;
 
+import com.workout.taskmanager.issue.entity.Issue;
 import com.workout.taskmanager.sprint.entity.Sprint;
-import com.workout.taskmanager.task.entity.Task;
 import com.workout.taskmanager.user.entity.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -47,7 +47,7 @@ public class Project {
     private List<ProjectMember> members;
 
     @OneToMany(mappedBy = "project")
-    private List<Task> assignedTasks = new ArrayList<>();
+    private List<Issue> assignedIssues = new ArrayList<>();
 
     @OneToMany(mappedBy = "project")
     private List<Sprint> sprints = new ArrayList<>();
